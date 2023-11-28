@@ -15,12 +15,18 @@
 /* Ensure that __builtin_clz is never called with 0 argument */
 static inline int ilog2(uint32_t x)
 {
-    // FIXME: likely inefficient (but also rarely used...)
 #if C64
-    uint8_t lz=0;
-    while(x>>=1)
-	lz++;
-    return lz;
+    static const int table[32] = {0,  9,  1,  10, 13, 21, 2,  29, 11, 14, 16,
+                                  18, 22, 25, 3,  30, 8,  12, 20, 28, 15, 17,
+                                  24, 7,  19, 27, 23, 6,  26, 5,  4,  31};
+
+    x |= x >> 1;
+    x |= x >> 2;
+    x |= x >> 4;
+    x |= x >> 8;
+    x |= x >> 16;
+
+    return table[(uint32_t) (x * 0x07C4ACDDU) >> 27];
 #else
     return 31 - __builtin_clz(x | 1);
 #endif
